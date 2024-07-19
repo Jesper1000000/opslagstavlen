@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash
+from flask import Flask, render_template, flash, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
@@ -8,12 +8,13 @@ from datetime import datetime
 
 # Create Flask's `app` object
 app = Flask(__name__)
-# add database 
+
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db' # Old SQL Lite
-# MySQL
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:password123@localhost/users'
-# secret key
+
+# secret key needed. 
 app.config['SECRET_KEY'] = "super secret key"
+
 # initialize the database
 db = SQLAlchemy(app)
 
@@ -24,7 +25,7 @@ class Users(db.Model):
     email = db.Column(db.String(120), nullable=False, unique=True)
     date_added = db.Column(db.DateTime, default=datetime.now())
 
-    # Create a string
+    # Create a string 
     def __repr__(self) -> str:
         return '<Name %r>' % self.name
 
@@ -38,7 +39,6 @@ class UserForm(FlaskForm):
 class NamerForum(FlaskForm):
     name = StringField("What's your name", validators=[DataRequired()])
     submit = SubmitField("Submit")
-
 
 # Define a route for the default URL, which loads the form
 @app.route('/')
@@ -107,10 +107,33 @@ def add_user():
         form.name.data = ''
         form.email.data = ''
         
-        flash("User added succesfully")
+        flash("User added successfully")
 
     our_users = Users.query.order_by(Users.date_added)
     return render_template('add_user.html',
                            name=name,
                            form=form,
                            our_users=our_users)
+
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+def update(id):
+    form = UserForm()
+    name_to_update = Users.query.get_or_404(id)
+    if request.method == 'POST':
+        name_to_update.name = request.form['name']
+        name_to_update.email = request.form['email']
+        try: 
+            db.session.commit()
+            flash('User is updated successfully')
+            return render_template("update.html",
+                                   form=form,
+                                   name_to_update=name_to_update)
+        except:
+            flash('Error! Looks like there was a problem - try again')
+            return render_template("update.html",
+                                   form=form,
+                                   name_to_update=name_to_update)
+    else:
+        return render_template("update.html",
+                        form=form,
+                        name_to_update=name_to_update)
