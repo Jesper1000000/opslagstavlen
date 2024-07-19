@@ -11,3 +11,10 @@ git config --global push.default matching
 git config --global alias.co checkout
 git init
 
+
+
+For the basic template:
+{% extends "base.html" %}
+{% block content %}
+
+{% endblock %}
