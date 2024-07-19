@@ -10,11 +10,12 @@ app = Flask(__name__)
 @app.route('/index')
 
 def index():
-    name = "Jesper"
-    byer = ["sorø", 'Aarhus', 23]
-    return render_template('index.html', 
-                           name=name,
-                           byer=byer)
+    user = {'username': 'Jesper'}
+    return render_template('index.html', title='Home', user=user)
+
+    
+    
+
 
 @app.errorhandler(404)
 def page_not_found(e):
