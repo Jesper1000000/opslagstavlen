@@ -1,0 +1,13 @@
+Run the app: 
+
+    flask --app main run --debug --host=0.0.0.0
+
+
+ssh-keygen -t ed25519 -C "eaajhho@students.eaaa.dk"
+
+git config --global user.name "jesper1000000"
+git config --global user.email "eaajhho@students.eaaa.dk"
+git config --global push.default matching
+git config --global alias.co checkout
+git init
+
