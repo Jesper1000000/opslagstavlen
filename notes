@@ -2,6 +2,7 @@ Run the app:
 
     flask --app main run --debug --host=0.0.0.0
 
+------ 
 
 ssh-keygen -t ed25519 -C "eaajhho@students.eaaa.dk"
 
@@ -11,10 +12,23 @@ git config --global push.default matching
 git config --global alias.co checkout
 git init
 
-
+------ 
 
 For the basic template:
 {% extends "base.html" %}
 {% block content %}
 
 {% endblock %}
+
+------
+
+My SQL connector pip: 
+pip install mysql-connector-python
+
+------
+
+$ python3
+>>> from hello import app, db
+>>> app.app_context().push()
+>>> db.create_all()
+>>> exit()
