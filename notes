@@ -32,3 +32,9 @@ $ python3
 >>> app.app_context().push()
 >>> db.create_all()
 >>> exit()
+
+------
+
+Migration af db 
+flask --app=main db migrate -m 'commit message'
+flask --app=main db upgrade

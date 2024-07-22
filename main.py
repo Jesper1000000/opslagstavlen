@@ -3,8 +3,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate 
 from datetime import datetime
-
 
 # Create Flask's `app` object
 app = Flask(__name__)
@@ -17,11 +17,13 @@ app.config['SECRET_KEY'] = "super secret key"
 
 # initialize the database
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Define the model Users with columns name, email and date_added
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
+    city = db.Column(db.String(120))
     email = db.Column(db.String(120), nullable=False, unique=True)
     date_added = db.Column(db.DateTime, default=datetime.now())
 
@@ -33,6 +35,7 @@ class Users(db.Model):
 class UserForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired()])
+    city = StringField('city')
     submit = SubmitField("Submit")
 
 # Create a form class
@@ -70,7 +73,7 @@ def user(name):
 def page_not_found(e):
     return render_template("404.html"), 404
 
-# 
+
 @app.errorhandler(505)
 def page_not_found(e):
     return render_template("500.html"), 500
@@ -99,13 +102,14 @@ def add_user():
 
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None: 
-            user = Users(name=form.name.data, email=form.email.data)
+            user = Users(name=form.name.data, email=form.email.data, city=form.city.data)
             db.session.add(user)
             db.session.commit()
         
         name = form.name.data
         form.name.data = ''
         form.email.data = ''
+        form.city.data = ''
         
         flash("User added successfully")
 
@@ -115,6 +119,31 @@ def add_user():
                            form=form,
                            our_users=our_users)
 
+@app.route('/delete/<int:id>' , methods=['GET', 'POST'])
+def delete(id):
+
+    user_to_delete = Users.query.get_or_404(id)
+    name = None
+    form = UserForm()
+
+    try:
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash("User deleted successfully")
+        our_users = Users.query.order_by(Users.date_added)
+        return render_template('add_user.html', name=name,
+                           form=form,
+                           our_users=our_users)
+
+    except:
+        flash("Error! Couldn't delete user, try again.")
+        return render_template("update.html",
+                                form=form,
+                                name=name,
+                                name_to_update=user_to_delete)
+
+
+
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update(id):
     form = UserForm()
@@ -122,6 +151,7 @@ def update(id):
     if request.method == 'POST':
         name_to_update.name = request.form['name']
         name_to_update.email = request.form['email']
+        name_to_update.city = request.form['city']
         try: 
             db.session.commit()
             flash('User is updated successfully')
@@ -136,4 +166,5 @@ def update(id):
     else:
         return render_template("update.html",
                         form=form,
-                        name_to_update=name_to_update)
+                        name_to_update=name_to_update,
+                        id = id)
